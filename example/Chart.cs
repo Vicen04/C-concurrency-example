@@ -8,8 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Assigment_V024491H
+namespace example
 {
+    //Made to create a chart that will display the data selected for comparisons, works in a similar way as the form
     public partial class Chart : Form
     {
         System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea;
@@ -24,6 +25,8 @@ namespace Assigment_V024491H
         public bool ready = false, allShops, allSupplies, allDates, allSuppliers, listShops, listDates, listSuppliers, listSupplies;
 
         int loop;
+
+        //Create and hide until its done
         public Chart(ListBox shop, ListBox provider, ListBox provider_supplies)
         {                       
             InitializeComponent();
@@ -44,6 +47,7 @@ namespace Assigment_V024491H
             CreateVisuals();
         }
 
+        //set up the data and the chart
         public void BindData()
         {
             chart1.ChartAreas.Add(chartArea);
@@ -58,6 +62,7 @@ namespace Assigment_V024491H
             Restart.Enabled = true;           
         }
 
+        //checkbox, works in the same way as the form, but here, all the boxes cannot be clicked
         private void Date_Click(object sender, EventArgs e)
         {
             listBox1.Items.Clear();
@@ -219,6 +224,7 @@ namespace Assigment_V024491H
             }
         }
 
+        //self explanatory
         private void Restart_Click(object sender, EventArgs e)
         {
             chart1.SendToBack();
@@ -309,6 +315,7 @@ namespace Assigment_V024491H
                 select_text2.Text = "Please, select a value";
         }
 
+        //if everything is set up right, it will set up everything so the calculation can be performed
         private void Accept_4_Click(object sender, EventArgs e)
         {
             if ((listBox3.Items.Count != 0 && listBox3.SelectedItem != null) || Cancel_list_3.Checked)
@@ -357,6 +364,7 @@ namespace Assigment_V024491H
                 select_text3.Text = "Please, select a value";
         }
 
+        //Visual data for the chart
         public void CreateVisuals()
         {
             chartArea = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
@@ -368,6 +376,8 @@ namespace Assigment_V024491H
             series.Name = "Cost in GBP";
             legend.Name = "Legend1";
         }
+
+        //visual data that will be displayed after the calculation is done
         public void BindVisualsData(string data, double calculate)
         {
             series.Points.AddXY(data, calculate);

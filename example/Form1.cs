@@ -12,19 +12,32 @@ using System.Diagnostics;
 using System.IO;
 using System.Collections.Concurrent;
 
-namespace Assigment_V024491H
+namespace example
 {   
     /// <summary>
     /// Most of the program is explained in the documentation
     /// </summary>
+    /// 
+
+    //init the form, all the data necessary variables are created here
     public partial class Form1 : Form
     {
+        //bools to check if the checkbox has been clicked to ease the calculations
         bool allDates = false, allSupplierTypes = false, allShops = false, allSuppliers = false, calculating = false;
+
+        //variable displayed after all the calculations
         double TotalCost;
+
+        //various string in for different variables
         string storeSelected, weekSelected, YearSelected, providerSelected, Provider_typeSelected;
+
         // this is to link the shop codes with the shop names
         Dictionary<string, string> stores = new Dictionary<string, string>();
+
+        //task that will enable the concurrency
         Task calculate;
+
+        //self explanatory
         public static string TimeToLoad;
         static string storeCodesFile;
         static string storeDataFolder;
@@ -32,11 +45,18 @@ namespace Assigment_V024491H
                 
         public Form1()
         {
+            //start the program
             InitializeComponent();
+
+            //select the folder with the data to calculate
             Select_folder.Description = "Select the folder that contains the shops cvs files";
             Select_folder.ShowDialog();
+
+            //select the file that will be used to load the form with data
             Select_file.Title = "Select the file that contains the shops codes and names";
-            Select_file.ShowDialog();                       
+            Select_file.ShowDialog();     
+            
+            //Load and set the form
             LoadData();           
             label1.TextAlign = ContentAlignment.MiddleCenter;
             label1.Text = TimeToLoad;
@@ -47,18 +67,23 @@ namespace Assigment_V024491H
         }
         private void button1_Click(object sender, EventArgs e)
         {
+            //check if the program is already calculating, fail to calculate if true
             if (calculating)
             {
                 Result.Text = "Wait until the current calculation finishes";
                 Time_to_calculate.Text = null;
             }
-            else if((Weeks.SelectedItem == null && !allDates) || (Provider.SelectedItem == null && !allSuppliers) || (Provider_type.SelectedItem == null && !allSupplierTypes) || (Shops.SelectedItem == null && !allShops))
+            // check if all the data necessary has been selected, fail if there's not enough data yet
+            else if((Weeks.SelectedItem == null && !allDates) || (Provider.SelectedItem == null && !allSuppliers)
+                    || (Provider_type.SelectedItem == null && !allSupplierTypes) || (Shops.SelectedItem == null && !allShops))
             {
                 Result.Text = "Select at least one option in every field please";
                 Time_to_calculate.Text = null;
             }
+            //calculate
             else
             {
+                //check if the boxes have been ticked to calculate all the values in the current box or just use the selected value
                 if (!allShops)
                 stores.TryGetValue(Shops.SelectedItem.ToString(), out storeSelected);
                 if (!allDates)
@@ -72,6 +97,8 @@ namespace Assigment_V024491H
                     Provider_typeSelected = Provider_type.SelectedItem.ToString();
 
                 TotalCost = 0;
+
+                //start the task
                 calculate = Task.Factory.StartNew(() =>
                    {
                        TotalCost = Calculate(allShops, allSupplierTypes, allSuppliers, allDates);                      
@@ -80,7 +107,7 @@ namespace Assigment_V024491H
                 calculating = true;
             }
         }
-
+        //check if the checkboxes have been clicked
         private void AllDates_CheckedChanged(object sender, EventArgs e)
         {
             if (All_dates.Checked == true)
@@ -161,6 +188,7 @@ namespace Assigment_V024491H
             AllDates_CheckedChanged(sender, e);
         }
 
+        //create a chart
         private void button2_Click(object sender, EventArgs e)
         {
             if (chart == null)
@@ -171,8 +199,10 @@ namespace Assigment_V024491H
             }
         }
 
+        //Used to make the chart work concurrently with the form using its own timer
         private void timer2_Tick(object sender, EventArgs e)
         {
+            //start the calculation for the chart, it will get the data from the chart to do it
             if (chart.ready)
             {
                 chart.ready = false;
@@ -187,6 +217,8 @@ namespace Assigment_V024491H
                 }
                 providerSelected = chart.supplierSelected;
                 Provider_typeSelected = chart.suppliesSelected;
+
+                //task name not relevant
                 Task cat = Task.Factory.StartNew(() =>
                 {
                     for (int i = 0; i < chart.count.Count; i++)
@@ -217,6 +249,7 @@ namespace Assigment_V024491H
             }            
         }
 
+        //clears all the ticked boxes
         private void Clear_all_Click(object sender, EventArgs e)
         {
             if (Weeks.SelectionMode != SelectionMode.None)
@@ -236,6 +269,7 @@ namespace Assigment_V024491H
             All_shops.Checked = false;
         }
      
+        //timer for the time it takes to calculate the cost in the windows form
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (calculate.IsCompleted)
@@ -248,17 +282,21 @@ namespace Assigment_V024491H
             }
         }
 
+        //class to pass the values in an easier way
         public class Store
         {
             public string StoreCode { get; set; }
             public string StoreLocation { get; set; }
         }
 
+        //Loads the data into the form
         public void LoadData()
         {
+            //Time that takes the form to load the first time
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
+            //load data from the file selected
             storeCodesFile = Select_file.FileName;
             storeDataFolder = Select_folder.SelectedPath;
             string storeCodesFilePath = storeCodesFile;
@@ -273,6 +311,7 @@ namespace Assigment_V024491H
                     Shops.Items.Add(store.StoreLocation);
                 }            
             }
+            //load data from the folder selected
             string[] fileNames = Directory.GetFiles(storeDataFolder);
             foreach (var filePath in fileNames)
             {
@@ -300,8 +339,11 @@ namespace Assigment_V024491H
             stopWatch.Stop();
             TimeToLoad = "Time to initiate: " + stopWatch.Elapsed.TotalSeconds;
         }
+
+        //Used to calculate the cost of all the variables selected
         public double Calculate(bool AllShops, bool allSupplies, bool allProviders, bool AllDates)
         {
+            // to make sure it only reads the selected data
             string store, week, year, supplier, supplies;
             store = storeSelected;
             week = weekSelected;
@@ -311,20 +353,26 @@ namespace Assigment_V024491H
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
             
-            
+            //load all the files into values
             string[] fileNames = Directory.GetFiles(storeDataFolder);
             ConcurrentQueue<double> values = new ConcurrentQueue<double>();
+
+            //int to know the number of threads the user can use in his computer
             int workerThreads = 0, asyncThreads = 0; 
+
+            //populate the int with the threads currently available
             ThreadPool.GetAvailableThreads(out workerThreads, out asyncThreads);
 
+            //split the threads, so it doesn't overload the computer, it may be an odd number so an extra division is done to get the remaining files in a task
             int threads = workerThreads / 4, filesToread = fileNames.Length / threads, extraFiles = fileNames.Length % threads, addedThreads= extraFiles / filesToread, filesForTask = extraFiles % filesToread;
 
-
+            //make the threads concurrent
             Parallel.For(0, threads + addedThreads, i =>
            {
                for (int j = i * filesToread; j < filesToread * (i + 1); j++)
                values.Enqueue(Getfiles(fileNames[j], AllShops, AllDates, allProviders, allSupplies, store, week, year, supplier, supplies));
            });
+            //get the files from the division to be calculated too
             if (filesForTask != 0)
             {
                 Task wait = Task.Factory.StartNew(() =>
@@ -339,6 +387,7 @@ namespace Assigment_V024491H
             return values.Sum();                       
         }
 
+        //Used to get which files should be read, most of the code is self explanatory
         private double Getfiles(string filePath, bool AllShops, bool AllDates, bool allProviders, bool allSupplies, string store, string week, string year, string supplier, string supplies)
         {
             string fileNameExt = Path.GetFileName(filePath);
@@ -382,6 +431,7 @@ namespace Assigment_V024491H
             return cost;
         }
 
+        //read the data from the files and add them to the total
         double ReadFiles(string orderInfo, bool allProviders, bool allSupplies, string supplier, string supplies)
         {                         
                     string[] orderSplit = orderInfo.Split(',');

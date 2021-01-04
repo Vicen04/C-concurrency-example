@@ -1,4 +1,4 @@
-﻿namespace Assigment_V024491H
+﻿namespace example
 {
     partial class Chart
     {
