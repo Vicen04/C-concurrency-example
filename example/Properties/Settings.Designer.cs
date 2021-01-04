@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Assigment_V024491H.Properties
+namespace example.Properties
 {
 
 
